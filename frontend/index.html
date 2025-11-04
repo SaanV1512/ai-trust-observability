@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Trust / LLM Observability Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <div id="app">
+    <header class="glass card header">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title-wrap">
+          <h1 class="title">AI Trust / LLM Observability</h1>
+          <p class="subtitle">Assess factual consistency, citations, and model confidence</p>
+        </div>
+      </div>
+
+    </header>
+
+    <main class="container">
+      <section class="glass card input-card">
+        <label for="query" class="input-label">Enter your question</label>
+        <div class="input-row">
+          <input id="query" class="input" type="text" placeholder="e.g., Who discovered penicillin?" />
+          <button id="analyzeBtn" class="btn primary">Get Response</button>
+        </div>
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
+
+      <section class="glass card answer-card">
+        <h2>Answer</h2>
+        <p id="answer" class="answer-text muted">Type in a question and click Get Response to see results.</p>
+      </section>
+
+      <!-- Then Trust + Metrics -->
+      <section class="grid">
+        <div class="glass card gauge-card">
+          <div class="card-head">
+            <h2>Trust Score</h2>
+
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 120 120">
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7c3aed" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+              </defs>
+              <circle class="gauge-bg" cx="60" cy="60" r="54" />
+              <circle class="gauge-fg" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292" />
+            </svg>
+            <div class="gauge-center">
+              <div id="trustPercent" class="percent">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass card metrics-card">
+          <h2 class="card-head">Supporting Metrics</h2>
+          <div class="metric">
+            <div class="metric-row">
+              <span class="metric-label">Semantic Similarity
+                <span class="info-chip"
+                  data-tip="Measures factual alignment between AI output and verified sources."><span
+                    class="chip-i">i</span></span>
+              </span>
+              <span id="semanticVal" class="metric-val">0%</span>
+            </div>
+            <div class="progress">
+              <div id="semanticBar" class="progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-row">
+              <span class="metric-label">Citation Coverage
+                <span class="info-chip" data-tip="Measures how much of the output is backed by sources."><span
+                    class="chip-i">i</span></span>
+              </span>
+              <span id="citationVal" class="metric-val">0%</span>
+            </div>
+            <div class="progress">
+              <div id="citationBar" class="progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-row">
+              <span class="metric-label">LLM Confidence
+                <span class="info-chip" data-tip="Measures how certain the model is in its own answer."><span
+                    class="chip-i">i</span></span>
+              </span>
+              <span id="confidenceVal" class="metric-val">0%</span>
+            </div>
+            <div class="progress">
+              <div id="confidenceBar" class="progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reasoning after metrics -->
+      <section class="glass card reasoning-card">
+        <h3>Reasoning</h3>
+        <p id="reasoning" class="muted">-</p>
+      </section>
+
+      <section class="glass card sources-card">
+        <details>
+          <summary>Sources</summary>
+          <ul id="sources" class="sources-list"></ul>
+        </details>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="backdrop" class="backdrop hidden">
+      <div class="loading-card glass">
+        <div class="ring"></div>
+        <div class="loading-text">Analyzing…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+
+</html>
