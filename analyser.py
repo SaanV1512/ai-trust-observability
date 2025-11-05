@@ -2,23 +2,56 @@ import os
 import openai
 import pandas as pd
 import google.generativeai as genai
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from dotenv import load_dotenv
 load_dotenv()
 
 from openai import OpenAI
-# client = OpenAI(api_key=os.getenv("GEMINI_API_KEY"))
-# response = client.chat.completions.create(
-#     model="gpt-4o-mini",
-#     messages=[
-#         {"role": "system", "content": "You are a helpful assistant."},
-#         {"role": "user", "content": "Hello!"},
-#     ],
-# )
-# print(response.choices[0].message.content)
-api_key = os.getenv("GEMINI_API_KEY")
-print("GEMINI_API_KEY:", api_key)
-genai.configure(api_key=api_key)
+from search_engine import combined_search
+
+genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash")
-response = model.generate_content("Hello, world!")
-print(response.text)
+
+def get_ai_answer(question):
+    try:
+        response = model.generate_content(question)
+        return response.text.strip()
+    except Exception as e:
+        return f"Error generating AI answer: {str(e)}"
+
+def get_llm_confidence(question, ai_answer):
+    try:
+        prompt = f"""
+        Quetsion: {question}
+        Answer: {ai_answer}
+
+        On a scale from 0 to 1, how confident are you that this answer is factually correct?
+        Respond with only a number.
+        """
+        response = model.generate_content(prompt)
+        confidence_text = response.text.strip()
+        try:
+            confidence_score = float(confidence_text)
+        except:
+            confidence_score = None
+        return confidence_score
+    except Exception as e:
+        return None
+
+def analyze_question(question):
+    ai_answer = get_ai_answer(question)
+    evidence = combined_search(question)
+    llm_confidence = get_llm_confidence(question, ai_answer)
+    return {
+        "question": question,
+        "ai_answer": ai_answer,
+        "llm_confidence": llm_confidence,
+        "wikipedia_evidence": evidence.get("wikipedia"),
+        "duckduckgo_evidence": evidence.get("duckduckgo")
+    }
+
+#manual testing
+if __name__ == "__main__":
+    sample_question = "Who discovered penicillin?"
+    analysis_result = analyze_question(sample_question)
+    print(analysis_result)
