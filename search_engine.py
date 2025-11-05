@@ -41,38 +41,6 @@ def extract_topic(question):
     prompt = f"Extract the main topic from this question. Only return the topic.\nQuestion: {question}\nTopic:"
     response = model.generate_content(prompt)
     return response.text.strip()
-#fact sentence extraction using NER
-# def answer_is_short_fact(ai_answer):
-#     doc = nlp(ai_answer)
-#     for ent in doc.ents:
-#         if ent.label_ in ["PERSON", "ORG", "GPE", "DATE", "EVENT", "WORK_OF_ART"]:
-#             return True
-#     if len(ai_answer.split()) <= 25:
-#         return True
-#     return False
-
-# def choose_extraction_model(question, ai_answer):
-#     if answer_is_short_fact(ai_answer):
-#         return "short"
-#     else:
-#         return "long"
-# def extract_fact_sentence(text):
-#     """
-#     Extracts the most factual sentence from a longer paragraph.
-#     Uses spaCy NER to find sentences containing real entities such as PERSON, DATE, etc.
-#     If none found, falls back to the first sentence.
-#     """
-#     doc = nlp(text)
-#
-#     # Try to return a sentence with factual entities
-#     for sent in doc.sents:
-#         labels = [ent.label_ for ent in sent.ents]
-#         if any(label in ["PERSON", "ORG", "GPE", "DATE", "EVENT", "WORK_OF_ART"] for label in labels):
-#             return sent.text.strip() + "."
-#
-#     # Fallback: just return first sentence
-#     sentences = list(doc.sents)
-#     return sentences[0].text.strip() + "." if sentences else text.strip()
 
 def search_wikipedia(query):
     page = wiki.page(query)
@@ -90,7 +58,8 @@ def duckduckgo_search(query, max_results=5):
         with DDGS() as ddgs:
             for r in ddgs.text(query, max_results=max_results):
                 snippet = r.get('body', '')
-                if not snippet:
+                url = r.get('href', '')
+                if not snippet or "wikipedia.org" in url.lower():
                     continue
                 try:
                     if detect(snippet) != "en":
