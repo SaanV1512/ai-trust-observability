@@ -129,60 +129,76 @@ def search_wikipedia(query: str, max_chars: int = 3000) -> dict:
     }
 
 def duckduckgo_search(query: str, max_results: int = 5) -> list:
-    """
-    Fetch richer DuckDuckGo results:
-      - summary: search snippet
-      - full_text: first 1–2 paragraphs fetched from webpage
-    """
     results = []
+
+    #instant answer API
     try:
-        with DDGS() as ddgs:
-            for r in ddgs.text(query, max_results=max_results):
-                title = r.get("title", "").strip()
-                url = r.get("href", "").strip()
-                snippet = clean_text(r.get("body", ""))  # short snippet from search results
+        ia_url = f"https://api.duckduckgo.com/?q={query}&format=json&no_html=1&skip_disambig=1"
+        resp = requests.get(ia_url, timeout=4).json()
 
-                if not title or not url or not snippet:
-                    continue
+        abstract = clean_text(resp.get("AbstractText", ""))
+        heading = resp.get("Heading", "")
+        source_url = resp.get("AbstractURL", "")
 
-                # Skip non-English snippets
-                try:
-                    if detect(snippet) != "en":
-                        continue
-                except Exception:
-                    continue
-
-                # Try fetching webpage for richer context
-                full_text = ""
-                try:
-                    response = requests.get(url, timeout=4)
-                    soup = BeautifulSoup(response.text, "html.parser")
-                    paras = soup.find_all("p")
-                    if paras:
-                        full_text = " ".join(p.get_text() for p in paras[:2])
-                        full_text = clean_text(full_text)
-                except Exception:
-                    pass  # fallback if page fetch fails
-
-                results.append({
-                    "title": title,
-                    "summary": snippet,
-                    "full_text": full_text,
-                    "url": url
-                })
-
+        if abstract:
+            results.append({
+                "title": heading or "DuckDuckGo Instant Answer",
+                "summary": abstract,
+                "full_text": abstract,
+                "url": source_url
+            })
     except Exception as e:
-        print(f"⚠️ DuckDuckGo search error: {str(e)}")
+        print("⚠️ Instant Answer API failed:", e)
 
-    # Remove duplicate URLs
+    #answer API
+    if len(results) < 1:
+        try:
+            ans_url = f"https://duckduckgo.com/answers?q={query}&format=json"
+            resp = requests.get(ans_url, timeout=4).json()
+
+            for a in resp.get("results", []):
+                text = clean_text(a.get("text", ""))
+                link = a.get("url", "")
+                title = a.get("title", "")
+
+                if text:
+                    results.append({
+                        "title": title or "DuckDuckGo Answer",
+                        "summary": text,
+                        "full_text": text,
+                        "url": link
+                    })
+        except:
+            pass
+    # DDGS fallback
+    if len(results) < 1:
+        try:
+            with DDGS() as ddgs:
+                for r in ddgs.text(query, max_results=max_results):
+                    snippet = clean_text(r.get("body", ""))
+                    url = r.get("href", "")
+                    title = r.get("title", "")
+
+                    if snippet:
+                        results.append({
+                            "title": title,
+                            "summary": snippet,
+                            "full_text": snippet,
+                            "url": url
+                        })
+        except Exception as e:
+            print("⚠️ DDGS search error:", e)
+
+    # Remove duplicates based on URL
+    final = []
     seen = set()
-    unique_results = []
     for r in results:
         if r["url"] not in seen:
             seen.add(r["url"])
-            unique_results.append(r)
+            final.append(r)
 
-    return unique_results[:max_results]
+    return final[:max_results]
+
 
 def combined_search(query: str) -> dict:
     """Combine Wikipedia and DuckDuckGo evidence for a given query."""
