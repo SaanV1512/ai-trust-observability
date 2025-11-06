@@ -1,12 +1,22 @@
 :root {
   --bg: #0b0e15;
   --card: rgba(255, 255, 255, 0.06);
-  --border: 1px solid rgba(255, 255, 255, 0.12);
+  --border: 1px solid rgba(67, 176, 175, 0.16);
   --text: #e7e7e7;
   --muted: #9aa0a6;
-  --accent: #10b981;
-  --accent-2: #16a34a;
-  --accent-3: #f97316;
+  /* Color scheme from image: Teal, Aqua, Lime Green palette */
+  --accent: #43B0AF;
+  /* vibrant teal */
+  --accent-2: #81EC86;
+  /* light lime green */
+  --accent-3: #67FFF2;
+  /* light aqua/cyan */
+  --accent-dark: #2A3056;
+  /* deep indigo */
+  --accent-green: #294933;
+  /* dark forest green */
+  --accent-sage: #446B5C;
+  /* muted sage green */
   --danger: #ef4444;
   --warn: #f59e0b;
   --radius: 16px;
@@ -36,9 +46,12 @@ body {
 body {
   margin: 0;
   font-family: 'Inter', 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  /* Smooth full-page gradient (no harsh seams) with subtle overlays */
+  /* Futuristic dark cityscape background with electric blue and neon green glows */
   background:
-    linear-gradient(145deg, #081511 0%, #0a1714 25%, #0b1b18 50%, #0c1b21 75%, #0d1922 100%);
+    radial-gradient(circle at 80% 20%, rgba(103, 255, 242, 0.15), transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(129, 236, 134, 0.12), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(67, 176, 175, 0.08), transparent 70%),
+    linear-gradient(160deg, #0a0f14 0%, #0d1218 30%, #0a0e15 60%, #0c1118 100%);
   background-attachment: fixed;
   color: var(--text);
 }
@@ -53,7 +66,7 @@ body {
   background: var(--card);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(16, 185, 129, 0.16);
+  border: var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 18px 20px;
@@ -65,8 +78,13 @@ body {
 
 .glass.card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 60px rgba(16, 185, 129, 0.18), 0 10px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 18px 60px rgba(67, 176, 175, 0.18), 0 10px 28px rgba(0, 0, 0, 0.28);
   z-index: 10;
+}
+
+/* Remove border from gauge card specifically */
+.gauge-card {
+  border: none !important;
 }
 
 .header {
@@ -128,8 +146,8 @@ body {
 }
 
 .input:focus {
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
-  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 0 0 4px rgba(67, 176, 175, 0.2);
+  border-color: rgba(103, 255, 242, 0.5);
 }
 
 .btn {
@@ -146,7 +164,7 @@ body {
 .btn.primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-3));
   color: white;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 24px rgba(67, 176, 175, 0.35);
 }
 
 .btn.primary:hover {
@@ -211,10 +229,8 @@ body {
 
 .gauge-fg {
   fill: none;
-  stroke: url(#grad);
   stroke-linecap: round;
   stroke-width: 12;
-  filter: drop-shadow(0 6px 14px rgba(124, 58, 237, 0.35));
 }
 
 .gauge-center {
@@ -274,6 +290,23 @@ body {
 .answer-text {
   font-size: 1.05rem;
   line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.answer-text strong {
+  font-weight: 600;
+  color: var(--accent-3);
+}
+
+.answer-text ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.answer-text li {
+  margin: 6px 0;
+  line-height: 1.5;
 }
 
 .muted {
@@ -300,6 +333,24 @@ body {
 
 .sources-list li {
   margin: 6px 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.source-link {
+  color: var(--accent-3);
+  text-decoration: none;
+  transition: color 200ms ease, text-decoration 200ms ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 1.5;
+}
+
+.source-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 .info-chip {
@@ -323,12 +374,12 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(124, 58, 237, 0.22);
+  background: rgba(67, 176, 175, 0.22);
   color: #fff;
   font-weight: 700;
   font-size: 12px;
-  border: 1px solid rgba(124, 58, 237, 0.45);
-  box-shadow: 0 6px 14px rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(103, 255, 242, 0.45);
+  box-shadow: 0 6px 14px rgba(67, 176, 175, 0.2);
 }
 
 .info-chip:hover::after {
@@ -413,7 +464,7 @@ body {
   border-top-color: var(--accent);
   border-right-color: var(--accent-3);
   animation: spin 900ms linear infinite;
-  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 6px 14px rgba(67, 176, 175, 0.35);
 }
 
 .loading-text {
@@ -445,7 +496,3 @@ body {
 }
 
 /* SVG gradient for gauge */
-.gauge::before {
-  content: '';
-  position: absolute;
-}
