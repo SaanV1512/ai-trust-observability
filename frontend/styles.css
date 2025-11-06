@@ -420,6 +420,8 @@ body {
   transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 999999;
+  /* ensure toast appears above all */
 }
 
 .toast.show {

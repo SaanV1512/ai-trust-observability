@@ -30,9 +30,17 @@ function setLoading(isLoading) {
   if (isLoading) {
     els.backdrop.classList.remove('hidden');
     els.status.textContent = 'Analyzing…';
+    els.analyzeBtn.disabled = true;
+    els.analyzeBtn.dataset.originalText = els.analyzeBtn.textContent;
+    els.analyzeBtn.textContent = 'Analyzing…';
   } else {
     els.backdrop.classList.add('hidden');
     els.status.textContent = '';
+    els.analyzeBtn.disabled = false;
+    if (els.analyzeBtn.dataset.originalText) {
+      els.analyzeBtn.textContent = els.analyzeBtn.dataset.originalText;
+      delete els.analyzeBtn.dataset.originalText;
+    }
   }
 }
 
@@ -168,7 +176,8 @@ function renderResults(data) {
 
   // Convert markdown to HTML for answer display
   const answerText = data.answer || '';
-  els.answer.innerHTML = formatMarkdown(answerText);
+  // Typing animation for answer
+  typeAnswer(answerText, 10);
   els.reasoning.textContent = data.reasoning_explanation || '';
 
   els.sources.innerHTML = '';
@@ -195,6 +204,22 @@ function renderResults(data) {
 
     els.sources.appendChild(li);
   });
+}
+
+// Typewriter effect for answer with basic markdown formatting support
+function typeAnswer(fullText, speed = 12) {
+  const text = fullText || '';
+  let i = 0;
+  const step = () => {
+    const slice = text.slice(0, i);
+    els.answer.innerHTML = formatMarkdown(slice);
+    i += 2; // increment faster for better UX
+    if (i <= text.length) {
+      requestAnimationFrame(step);
+    }
+  };
+  els.answer.innerHTML = '';
+  requestAnimationFrame(step);
 }
 
 async function onAnalyze() {
