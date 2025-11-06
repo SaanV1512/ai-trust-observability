@@ -119,5 +119,3 @@ Credits
 - Project / prototype created as an AI Trust / LLM Observability demo (hackathon prototype). See the `backend` and `frontend` folders for source code.
 
 If you'd like, I can further trim `requirements.txt` to a minimal runtime list or add a short CI/test harness next.
-
-# ai-trust-observability
