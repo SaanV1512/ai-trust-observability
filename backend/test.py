@@ -4,7 +4,7 @@ from sentence_module import generate_trust_report
 import json
 
 try:
-    question = "Who discovered penicillin?"
+    question = "Who is the founder of OnlyFans"
 
     analysis = analyze_question(question)
     report = generate_trust_report(

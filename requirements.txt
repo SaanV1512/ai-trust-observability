@@ -1,5 +1,0 @@
-According to gpt:
-openai
-streamlit
-duckduckgo-search
-pandas

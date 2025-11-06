@@ -39,6 +39,57 @@ function setLoading(isLoading) {
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 function toPercent(v) { return Math.round(clamp01(v) * 100); }
 
+function formatMarkdown(text) {
+  if (!text) return '';
+
+  // Escape HTML to prevent XSS (but preserve already escaped entities)
+  let html = text
+    .replace(/&(?![a-zA-Z0-9#]+;)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Convert markdown bold (**text** or __text__) to HTML
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+  // Convert numbered lists (1. item) to HTML
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+
+  // Convert bulleted lists (- item or * item) to HTML  
+  html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
+
+  // Wrap consecutive <li> elements in <ul> tags
+  html = html.replace(/(<li>.*?<\/li>(\s|$))+/g, '<ul>$&</ul>');
+
+  // Convert single newlines within paragraphs to spaces (preserve double newlines)
+  // First, protect list blocks
+  const listBlocks = [];
+  html = html.replace(/<ul>.*?<\/ul>/gs, (match) => {
+    listBlocks.push(match);
+    return `__LIST_BLOCK_${listBlocks.length - 1}__`;
+  });
+
+  // Convert double newlines to paragraph breaks, single newlines to <br>
+  html = html.replace(/\n\n+/g, '</p><p>');
+  html = html.replace(/\n/g, '<br>');
+
+  // Restore list blocks
+  listBlocks.forEach((block, i) => {
+    html = html.replace(`__LIST_BLOCK_${i}__`, block);
+  });
+
+  // Wrap in paragraph tags if not already wrapped
+  if (!html.startsWith('<ul>') && !html.startsWith('<p>')) {
+    html = '<p>' + html + '</p>';
+  }
+
+  // Clean up empty paragraphs
+  html = html.replace(/<p>\s*<\/p>/g, '');
+  html = html.replace(/<p><br><\/p>/g, '');
+
+  return html;
+}
+
 function colorForPercent(p) {
   if (p >= 80) return '#22c55e';
   if (p >= 60) return '#f59e0b';
@@ -74,7 +125,7 @@ function animateBar(el, value, valEl) {
 async function fetchAnalysis(query) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    const timeout = setTimeout(() => controller.abort(), 60 * 1000);
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,9 +133,11 @@ async function fetchAnalysis(query) {
       signal: controller.signal
     });
     clearTimeout(timeout);
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (e) {
+    console.log(e);
     return {
       question: query,
       answer: 'Penicillin was discovered by Alexander Fleming in 1928.',
@@ -94,8 +147,8 @@ async function fetchAnalysis(query) {
       llm_confidence: 0.79,
       reasoning_explanation: 'The AI’s response matches multiple verified sources mentioning Alexander Fleming and penicillin in 1928.',
       sources: [
-        'Wikipedia: Alexander Fleming discovered penicillin in 1928.',
-        'Britannica: Penicillin discovery credited to Alexander Fleming.'
+        { title: 'Wikipedia: Alexander Fleming', url: 'https://en.wikipedia.org/wiki/Alexander_Fleming' },
+        { title: 'Britannica: Penicillin', url: 'https://www.britannica.com/science/penicillin' }
       ],
       _fallback: true
     };
@@ -113,13 +166,33 @@ function renderResults(data) {
   animateBar(els.citationBar, citation, els.citationVal);
   animateBar(els.confidenceBar, confidence, els.confidenceVal);
 
-  els.answer.textContent = data.answer || '';
+  // Convert markdown to HTML for answer display
+  const answerText = data.answer || '';
+  els.answer.innerHTML = formatMarkdown(answerText);
   els.reasoning.textContent = data.reasoning_explanation || '';
 
   els.sources.innerHTML = '';
-  (data.sources || []).forEach((s) => {
+  (data.sources || []).forEach((source) => {
     const li = document.createElement('li');
-    li.textContent = s;
+
+    // Handle both object format (new) and string format (fallback)
+    if (typeof source === 'object' && source.title) {
+      const link = document.createElement('a');
+      link.href = source.url || '#';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = source.title;
+      link.className = 'source-link';
+      if (source.url) {
+        li.appendChild(link);
+      } else {
+        li.textContent = source.title;
+      }
+    } else {
+      // Fallback for string format (dummy data)
+      li.textContent = source;
+    }
+
     els.sources.appendChild(li);
   });
 }
@@ -137,6 +210,7 @@ async function onAnalyze() {
     renderResults(data);
     if (data._fallback) showToast('Backend unavailable — showing dummy results.');
   } catch (err) {
+    console.log(err);
     showToast('Something went wrong. Please try again.');
   } finally {
     setLoading(false);
