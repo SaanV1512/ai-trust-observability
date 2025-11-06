@@ -26,6 +26,18 @@ This README shows how to run the project, where to type a question, where to see
 python -m pip install -r .\requirements.txt
 ```
 
+1.5 Create a `.env` file with your Gemini / GenAI API key
+
+Create a `.env` file in the project root (next to `backend/`) and add your Google Generative AI (Gemini) API key as the environment variable `GENAI_API_KEY`:
+
+```text
+GENAI_API_KEY=your_api_key_here
+```
+
+You can obtain an API key from Google AI Studio (sign in and create an API key): https://aistudio.google.com/api-keys
+
+The backend `analyser.py` reads `GENAI_API_KEY` from the environment to configure the `google.generativeai` client.
+
 2. Start the backend API (development):
 
 ```powershell
